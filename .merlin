@@ -14,4 +14,7 @@ PKG bencode
 PKG yojson
 PKG containers
 PKG lwt.ppx
+PKG sqlite3
+PKG sqlexpr
+PKG sqlexpr.ppx
 FLG -w +a-4-44

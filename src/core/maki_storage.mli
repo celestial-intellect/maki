@@ -54,12 +54,12 @@ val none : t
 (** A dummy storage which does not store any result, thus forcing
     every computation to run. *)
 
-val default : ?dir:path -> unit -> t Lwt.t
-(** [default ?dir ()] creates a new default storage (one file per pair)
-    @param dir if provided, set the directory used for storing files
-      if [dir] is not set, then the current directory is used, unless the
-        environment variable "MAKI_DIR" is set
-    @raise Unix.Error in case of error, if it could not create [dir] properly *)
+val default : ?file:path -> unit -> t Lwt.t
+(** [default ?dir ()] creates a new default storage (sqlite)
+    @param file if provided, set the file used. Otherwise, a default file is
+    used,
+    unless the environment variable "MAKI_FILE" is set
+    @raise Unix.Error in case of error, if it could not create [file] properly *)
 
 val set_default : t -> unit
 (** Change the storage that is used to evaluate every Maki function *)

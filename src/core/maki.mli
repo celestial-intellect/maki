@@ -278,7 +278,7 @@ module Arg : sig
   type t = A : 'a Hash.t * 'a -> t
   (** A pair of a value (in case we need to compute) and a hash
       function (to check whether a result is computed already).
-  
+
       Typically one would use {!@::}:
 
       - {[  int @:: 42 ]}

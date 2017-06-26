@@ -27,7 +27,8 @@ Library maki
   Modules:          Maki, Maki_storage
   InternalModules:  Maki_log, Maki_utils, Maki_lwt_err,
                     Maki_bencode
-  BuildDepends:     lwt.unix, lwt.preemptive, sha, bencode, result, threads
+  BuildDepends:     lwt.unix, lwt.preemptive, sha, bencode, result,
+                    threads, sqlexpr.ppx
 
 Library "maki_yojson"
   Path:           src/json

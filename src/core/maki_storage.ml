@@ -6,6 +6,8 @@
 open Result
 open Lwt.Infix
 
+module Sqlexpr = Sqlexpr_sqlite.Make(Sqlexpr_concurrency.Lwt)
+
 type 'a or_error = ('a, string) Result.result
 type path = string
 
@@ -21,7 +23,7 @@ type t = {
   flush_cache: unit -> unit;
 }
 
-let env_var_ = "MAKI_DIR"
+let env_var_ = "MAKI_DB"
 
 let name t = t.name
 let get t k = t.get k
@@ -43,33 +45,32 @@ let set_exn t k v =
 module Default = struct
   type t = {
     pool: unit Lwt_pool.t;
-    dir: path;
-    cache: (string, string option or_error) Hashtbl.t;
+    file: path;
+    db: Sqlexpr.db;
   }
 
-  let k_to_file t f = Filename.concat t.dir f
-
-  let read_file_ f =
-    Lwt_io.with_file ~mode:Lwt_io.input f (fun ic -> Lwt_io.read ic)
-
-  let get_ t k =
-    try Lwt.return (Hashtbl.find t.cache k)
-    with Not_found ->
-      Lwt.catch
-        (fun () ->
-          let f = k_to_file t k in
-          if Sys.file_exists f
-          then read_file_ f >|= fun x -> Ok (Some x)
-          else Lwt.return (Ok None))
-        (fun e ->
-          Lwt.return (Error (Printexc.to_string e)))
-      >|= fun res ->
-      Hashtbl.add t.cache k res;
-      res
+  let get_ t key =
+    try%lwt
+      Sqlexpr.select_one_maybe t.db
+        [%sqlc "SELECT @s{data} FROM maki WHERE key=%s"] key 
+      >|= CCResult.return
+    with e ->
+      Maki_log.logf 1
+        (fun k->k "error when looking for key `%s`: %s"
+            key (Printexc.to_string e));
+      Lwt.return (Ok None)
 
   let get t k = Lwt_pool.use t.pool (fun _ -> get_ t k)
 
   let set_ t k v =
+    try%lwt
+    with e ->
+      Maki_log.logf 1
+        (fun k->k "error when looking for key `%s`: %s"
+            key (Printexc.to_string e));
+      Lwt.return (Ok None)
+
+
     Lwt.catch
       (fun () ->
         let f = k_to_file t k in
